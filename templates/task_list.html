@@ -1,0 +1,37 @@
+<!-- templates/task_list.html -->
+{% extends "base.html" %}
+
+{% block title %}Tasks{% endblock title %}
+
+{% block content %}
+{% for task in task_list %}
+<div class="card">
+    <div class="card-header">
+        <span class="fw-bold">
+            <a href="{{ task.get_absolute_url }}">{{ task.title }}</a>
+        </span> &middot;
+        <span class="text-muted">by {{ task.author }} |
+        {{ task.date }}</span>
+    </div>
+    <div class="card-body">
+        <p>{{ task.body }}</p>
+        {% if task.author.pk == request.user.pk %}    
+            <a href="{% url 'task_edit' task.pk %}">Edit</a>
+            <a href="{% url 'task_delete' task.pk %}">Delete</a>
+        {% endif %}
+        <a href="{{ task.get_absolute_url  }}">New Comment</a>
+    </div>
+    <div class="card-footer">
+        {% for comment in task.comment_set.all %}
+        <p>
+            <span class="fw-bold">
+                {{ comment.author }} &middot;
+            </span>
+            {{ comment }}
+        </p>
+        {% endfor %}
+    </div>
+</div>
+<br />
+{% endfor %}
+{% endblock content %}
