@@ -1,14 +1,79 @@
-<!-- templates/registration/login.html -->>
+<!-- templates/registration/login.html -->
+
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}Log In{% endblock title %}
 
 {% block content %}
+
 <h2>Log In</h2>
-<form method="post">{% csrf_token %}
-    {{ form| crispy }}
-    <button class="btn btn-success ml-2" type="submit">Log In</button>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+
+    <button
+        class="btn btn-success ml-2"
+        type="submit">
+        Log In
+    </button>
 </form>
-<p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
+
+
+<button
+    id="passkey-login-button"
+    class="btn btn-outline-primary w-100 mt-3"
+    type="button">
+    Login with Passkey
+</button>
+
+
+<p>
+    <a href="{% url 'password_reset' %}">
+        Forgot your password?
+    </a>
+</p>
+
+
+<script src="{% static 'passkeys/passkeys.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const button =
+        document.getElementById(
+            "passkey-login-button"
+        );
+
+    button.addEventListener(
+        "click",
+        async function () {
+
+            try {
+
+                await startAuth(
+                    "{% url 'passkeys:auth_start' %}",
+                    "{% url 'passkeys:auth_finish' %}",
+                    "{{ csrf_token }}"
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Passkey authentication failed:",
+                    error
+                );
+
+                alert(
+                    error.message ||
+                    "Passkey authentication failed."
+                );
+            }
+        }
+    );
+});
+</script>
+
 {% endblock content %}

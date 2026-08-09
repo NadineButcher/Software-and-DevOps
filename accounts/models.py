@@ -4,3 +4,4 @@ from django.db import models
 
 class CustomUser(AbstractUser):
     age = models.PositiveIntegerField(null=True, blank=True)
+    webauthn_credentials = models.JSONField(default=list, blank=True)

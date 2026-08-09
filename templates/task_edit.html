@@ -2,10 +2,33 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
+{% block title %}Edit Task{% endblock title %}
+
+{% block extra_head %}
+    {{ form.media }}
+{% endblock extra_head %}
+
 {% block content %}
-<h1>Edit</h1>
-<form action="" method="post">{% csrf_token %}
-    {{ form|crispy }}
-    <button class="btn btn-info ml-2" type="submit">Update</button>
-</form>
+
+<div class="container mt-4">
+
+    <h1 class="mb-4">Edit Task</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form|crispy }}
+
+        <button type="submit" class="btn btn-success mt-3">
+            Save Changes
+        </button>
+
+        <a href="{% url 'task_detail' object.pk %}"
+           class="btn btn-secondary mt-3">
+            Cancel
+        </a>
+    </form>
+
+</div>
+
 {% endblock content %}

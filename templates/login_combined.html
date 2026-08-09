@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 480px;">
+    
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+            <h3 class="text-center mb-4 fw-bold">Login</h3>
+
+            <!-- Password Login -->
+            <form method="POST" action="{% url 'login_combined' %}">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <button type="submit" class="btn btn-primary w-100 mt-2">
+                    Login with Password
+                </button>
+            </form>
+
+            <hr class="my-4">
+
+            <!-- Security Key Login -->
+            <h5 class="text-center mb-3">Or use your Security Key</h5>
+
+            <script src="{% static 'django_webauthn/webauthn.js' %}"></script>
+
+            <button onclick="webauthnAuthenticate()" 
+                    class="btn btn-outline-secondary w-100">
+                Login with Security Key
+            </button>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

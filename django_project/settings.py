@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+# Django settings for django_project project.
 from pathlib import Path
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,13 +21,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-k3#+d()y@cemw)45h#27c=4_dhi5misi+cnouy&&-mwug)i3)7"
+#SECRET_KEY = "django-insecure-k3#+d()y@cemw)45h#27c=4_dhi5misi+cnouy&&-mwug)i3)7"
+SECRET_KEY = get_random_secret_key()
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+if DEBUG:
+    ALLOWED_HOSTS = []
+#else:
+    #ALLOWED_HOSTS = ["yourapp.onrender.com"]
 
+# Security settings (production only)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Application definition
 
@@ -36,11 +50,17 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    #"whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
-    #3rd part apps
+    "django_ckeditor_5",
+
+   #3rd part apps
     "crispy_forms",
     "crispy_bootstrap5",
+    "passkeys",   
+
+    #axes (account lockout)
+    "axes",
+
     #local apps
     "accounts",
     "pages",
@@ -54,9 +74,24 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    'axes.middleware.AxesMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# url configuation to stop Log Out Error 405
+APPEND_SLASH = True
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'axes.backends.AxesStandaloneBackend',
+]
+
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1  # hours
+AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
+AXES_LOCKOUT_CALLABLE = 'axes.handlers.database.AxesDatabaseHandler'
+AXES_IGNORE_LOGOUT = True
 
 ROOT_URLCONF = "django_project.urls"
 
@@ -95,20 +130,31 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
+# Checks the similarity between the password and a set of attributes of the user.
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {
+# Checks whether the password meets a minimum length.
+   {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
+# Checks whether the password occurs in a list of common passwords
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
+# Checks whether the password isn’t entirely numeric    
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
+#hashing algorithms used for password storage. Django uses PBKDF2 by default, which is a strong and secure hashing algorithm. The other hashers are included for compatibility with existing passwords that may have been hashed using those algorithms.
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -126,6 +172,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [
+    BASE_DIR / "passkeys" / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -144,4 +193,37 @@ LOGOUT_REDIRECT_URL = "home"
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# CKEditor 5 Configuration
+
+CKEDITOR_5_CONFIGS = {
+    "extends": {
+        "toolbar": [
+            "heading",
+            "|",
+            "bold",
+            "italic",
+            "underline",
+            "strikethrough",
+            "|",
+            "bulletedList",
+            "numberedList",
+            "|",
+            "alignment",
+            "|",
+            "link",
+            "blockQuote",
+            "insertTable",
+            "|",
+            "undo",
+            "redo",
+        ],
+    },
+}
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.office365.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "name@hotmail.co.uk"
+EMAIL_HOST_PASSWORD = "your_hotmail_email_password"
+

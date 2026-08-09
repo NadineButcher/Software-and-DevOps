@@ -15,7 +15,11 @@
         {{ task.date }}</span>
     </div>
     <div class="card-body">
-        <p>{{ task.body }}</p>
+
+        <div class="task-body">
+            {{ task.body|safe }} 
+        </div>
+
         {% if task.author.pk == request.user.pk %}    
             <a href="{% url 'task_edit' task.pk %}">Edit</a>
             <a href="{% url 'task_delete' task.pk %}">Delete</a>
