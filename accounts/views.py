@@ -19,16 +19,19 @@ class SignUpView(CreateView):
 
     template_name = "registration/signup.html"
 
-    success_url = reverse_lazy("passkey_setup")
+    success_url = reverse_lazy("passkeys:register_page")
 
-    def form_valid(self, form):
+def form_valid(self, form):
+    response = super().form_valid(form)
 
-        response = super().form_valid(form)
+    # Automatically log the newly-created user in.
+    login(
+        self.request,
+        self.object,
+        backend="django.contrib.auth.backends.ModelBackend",
+    )
 
-        # Automatically log the newly-created user in.
-        login(self.request, self.object)
-
-        return response
+    return response
 
 
 # ============================================================
