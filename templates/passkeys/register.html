@@ -5,7 +5,9 @@
 
 {% block content %}
 
-<div class="container mt-5">
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6">
 
@@ -35,56 +37,24 @@
     </div>
 </div>
 
-<script src="{% static 'passkeys/passkeys.js' %}"></script>
+<script src="{% static 'passkeys/passkey.js' %}"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+document
+    .getElementById("register-passkey-button")
+    .addEventListener("click", function () {
 
-    const button =
-        document.getElementById("register-passkey-button");
+        const csrfToken =
+            document.querySelector(
+                'meta[name="csrf-token"]'
+            ).content;
 
-    const status =
-        document.getElementById("passkey-status");
-
-    button.addEventListener("click", async function () {
-
-        button.disabled = true;
-        status.innerHTML =
-            '<div class="alert alert-info">Starting passkey registration...</div>';
-
-        try {
-
-            await window.startRegistration(
-                "{% url 'passkeys:register_start' %}",
-                "{% url 'passkeys:register_finish' %}",
-                "{{ csrf_token }}"
-            );
-
-            status.innerHTML =
-                '<div class="alert alert-success">' +
-                'Passkey registered successfully.' +
-                '</div>';
-
-        } catch (error) {
-
-            console.error(
-                "Passkey registration failed:",
-                error
-            );
-
-            status.innerHTML =
-                '<div class="alert alert-danger">' +
-                'Passkey registration failed: ' +
-                (error.message || error) +
-                '</div>';
-
-        } finally {
-
-            button.disabled = false;
-        }
+        startRegistration(
+            "{% url 'passkeys:register_start' %}",
+            "{% url 'passkeys:register_finish' %}",
+            csrfToken
+        );
     });
-
-});
 </script>
 
 {% endblock content %}

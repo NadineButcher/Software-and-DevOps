@@ -5,8 +5,11 @@ from django.views import View
 from django.views.generic import ListView, DetailView, FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
+from django.utils.decorators import method_decorator
 
 from django.urls import reverse_lazy, reverse
+
+from django_ratelimit.decorators import ratelimit
 
 from .forms import CommentForm, TaskForm
 from .models import Task
@@ -16,13 +19,25 @@ from .models import Task
 # COMMENTS
 # ============================================================
 
-class CommentGet(DetailView):
-    ratelimit_key = "ip"
-    ratelimit_rate = "20/m"
-    ratelimit_block = True
+class CommentGet(LoginRequiredMixin,DetailView):
 
     model = Task
     template_name = "task_detail.html"
+
+    @method_decorator(
+        ratelimit(
+            key="ip",
+            rate="20/m",
+            method="GET",
+            block=True,
+        )
+    )
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def test_func(self):
+        obj = self.get_object()
+        return obj.author == self.request.user
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -30,14 +45,27 @@ class CommentGet(DetailView):
         return context
 
 
-class CommentPost(SingleObjectMixin, FormView):
-    ratelimit_key = "ip"
-    ratelimit_rate = "10/m"
-    ratelimit_block = True
+class CommentPost(LoginRequiredMixin, SingleObjectMixin, FormView):
 
     model = Task
     form_class = CommentForm
     template_name = "task_detail.html"
+
+    @method_decorator(
+        ratelimit(
+            key="ip",
+            rate="10/m",
+            method="POST",
+            block=True,
+        )
+    )
+
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def test_func(self):
+        obj = self.get_object()
+        return obj.author == self.request.user
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -64,12 +92,19 @@ class CommentPost(SingleObjectMixin, FormView):
 # ============================================================
 
 class TaskListView(LoginRequiredMixin, ListView):
-    ratelimit_key = "ip"
-    ratelimit_rate = "20/m"
-    ratelimit_block = True
-
     model = Task
     template_name = "task_list.html"
+
+    @method_decorator(
+        ratelimit(
+            key="ip",
+            rate="20/m",
+            method="GET",
+            block=True,
+        )
+    )
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 # ============================================================
@@ -77,9 +112,6 @@ class TaskListView(LoginRequiredMixin, ListView):
 # ============================================================
 
 class TaskDetailView(LoginRequiredMixin, View):
-    ratelimit_key = "ip"
-    ratelimit_rate = "20/m"
-    ratelimit_block = True
 
     def get(self, request, *args, **kwargs):
         view = CommentGet.as_view()
@@ -95,31 +127,47 @@ class TaskDetailView(LoginRequiredMixin, View):
 # ============================================================
 
 class TaskUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    ratelimit_key = "ip"
-    ratelimit_rate = "5/m"
-    ratelimit_block = True
 
     model = Task
     form_class = TaskForm
     template_name = "task_edit.html"
 
+    @method_decorator(
+            ratelimit(
+                key="ip",
+                rate="5/m",
+                method="POST",
+                block=True,
+            )
+        )
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def test_func(self):
         obj = self.get_object()
         return obj.author == self.request.user
-
 
 # ============================================================
 # TASK DELETE
 # ============================================================
 
 class TaskDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    ratelimit_key = "ip"
-    ratelimit_rate = "5/m"
-    ratelimit_block = True
 
     model = Task
     template_name = "task_delete.html"
     success_url = reverse_lazy("task_list")
+
+
+    @method_decorator(
+        ratelimit(
+            key="ip",
+            rate="5/m",
+            method="POST",
+            block=True,
+        )
+    )
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def test_func(self):
         obj = self.get_object()
@@ -131,13 +179,22 @@ class TaskDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # ============================================================
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
-    ratelimit_key = "ip"
-    ratelimit_rate = "5/m"
-    ratelimit_block = True
 
     model = Task
     form_class = TaskForm
     template_name = "task_new.html"
+
+    @method_decorator(
+        ratelimit(
+            key="ip",
+            rate="5/m",
+            method="POST",
+            block=True,
+        )
+    )
+
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def form_valid(self, form):
         form.instance.author = self.request.user

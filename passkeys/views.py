@@ -8,6 +8,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_GET, require_POST
+
+from django_ratelimit.decorators import ratelimit
 
 from webauthn import (
     generate_registration_options,
@@ -157,7 +161,6 @@ def register_start(request):
 # PASSKEY REGISTRATION - FINISH
 # ============================================================
 
-@csrf_exempt
 @login_required
 def register_finish(request):
     """
@@ -272,10 +275,17 @@ def register_finish(request):
 # PASSKEY LOGIN - START
 # ============================================================
 
+@ratelimit(
+    key="ip",
+    rate="10/m",
+    method="GET",
+    block=True,
+)
+
 def auth_start(request):
+    
     """
     Generate WebAuthn authentication options.
-
     The user does NOT need to be logged in.
     """
 
@@ -300,12 +310,16 @@ def auth_start(request):
 # PASSKEY LOGIN - FINISH
 # ============================================================
 
-@csrf_exempt
+@ratelimit(
+    key="ip",
+    rate="5/m",
+    method="POST",
+    block=True,
+)
 def auth_finish(request):
     """
     Verify the passkey and log the user into Django.
     """
-
     try:
 
         data = json.loads(

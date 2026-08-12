@@ -1,3 +1,5 @@
+#settings.py
+
 """
 Django settings for django_project project.
 
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_ckeditor_5",
+    "django_ratelimit",
 
    #3rd part apps
     "crispy_forms",
@@ -227,3 +230,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "name@hotmail.co.uk"
 EMAIL_HOST_PASSWORD = "your_hotmail_email_password"
 
+SILENCED_SYSTEM_CHECKS = [
+    "django_ratelimit.E003",
+    "django_ratelimit.W001",
+]

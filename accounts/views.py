@@ -4,15 +4,26 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.generic import CreateView
 
-from .forms import CustomUserCreationForm
+from django_ratelimit.decorators import ratelimit
 
+from .forms import CustomUserCreationForm
 
 # ============================================================
 # SIGN UP
 # ============================================================
 
+@method_decorator(
+    ratelimit(
+        key="ip",
+        rate="5/m",
+        method="POST",
+        block=True,
+    ),
+    name="post",
+)
 class SignUpView(CreateView):
 
     form_class = CustomUserCreationForm
