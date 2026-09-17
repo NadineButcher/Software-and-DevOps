@@ -109,7 +109,7 @@ AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
 ]
 
-AXES_FAILURE_LIMIT = 5
+AXES_FAILURE_LIMIT = 20
 AXES_COOLOFF_TIME = 1  # hours
 AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
 AXES_LOCKOUT_CALLABLE = 'axes.handlers.database.AxesDatabaseHandler'
