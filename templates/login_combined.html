@@ -10,7 +10,7 @@
             <h3 class="text-center mb-4 fw-bold">Login</h3>
 
             <!-- Password Login -->
-            <form method="POST" action="{% url 'login_combined' %}">
+            <form method="POST" action="{% url 'login' %}">
                 {% csrf_token %}
                 {{ form.as_p }}
 
