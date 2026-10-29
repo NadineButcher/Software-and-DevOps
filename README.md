@@ -1,2 +1,4 @@
-Regular user account
-TestUsernadine - TestUser123
+Username: SuperUser
+Email Address: nadine.butcher79@gmail.com
+Password: AdminAccountTest
+
